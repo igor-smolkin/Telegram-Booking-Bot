@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: booking-bot
+
+telegram:
+  bot:
+    username: ${TELEGRAM_BOT_USERNAME}
+    token: ${TELEGRAM_BOT_TOKEN}
+    admin-group-chat-id: ${TELEGRAM_ADMIN_GROUP_CHAT_ID}
+  admin:
+    ids: ${TELEGRAM_ADMIN_IDS}
+
+google:
+  table:
+    spreadsheet-id: ${GOOGLE_SPREADSHEET_ID}
+    calendar-id: ${GOOGLE_CALENDAR_ID}
+    credentials-path: ${GOOGLE_CREDENTIALS_PATH}
+
+server:
+  port: ${SERVER_PORT}
+
+logging:
+  level:
+    root: INFO
+    org.telegram: WARN
