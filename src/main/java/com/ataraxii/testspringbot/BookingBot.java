@@ -1,13 +1,15 @@
 package com.ataraxii.testspringbot;
 
-import com.ataraxii.testspringbot.handler.BookingHandler;
-import com.ataraxii.testspringbot.handler.StepHandler;
-import com.ataraxii.testspringbot.handler.callback.CallbackQueryHandler;
-import com.ataraxii.testspringbot.keyboard.KeyboardFactory;
-import com.ataraxii.testspringbot.model.BookingStep;
-import com.ataraxii.testspringbot.properties.TelegramBotProperties;
-import com.ataraxii.testspringbot.service.telegram.BookingStateService;
-import com.ataraxii.testspringbot.service.telegram.TelegramBotExecutor;
+import com.ataraxii.testspringbot.bot.handler.BookingHandler;
+import com.ataraxii.testspringbot.bot.handler.StepHandler;
+import com.ataraxii.testspringbot.bot.handler.admin.AdminCommandHandler;
+import com.ataraxii.testspringbot.bot.handler.callback.CallbackQueryHandler;
+import com.ataraxii.testspringbot.bot.keyboard.KeyboardFactory;
+import com.ataraxii.testspringbot.bot.model.BookingStep;
+import com.ataraxii.testspringbot.bot.properties.TelegramBotProperties;
+import com.ataraxii.testspringbot.bot.service.telegram.BookingStateService;
+import com.ataraxii.testspringbot.bot.service.telegram.TelegramBotExecutor;
+import com.ataraxii.testspringbot.db.service.BotConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,8 @@ public class BookingBot extends TelegramWebhookBot implements TelegramBotExecuto
     private final BookingStateService stateService;
     private final CallbackQueryHandler callbackQueryHandler;
     private final KeyboardFactory keyboardFactory;
+    private final BotConfigService botConfigService;
+    private final AdminCommandHandler adminCommandHandler;
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
@@ -41,7 +45,7 @@ public class BookingBot extends TelegramWebhookBot implements TelegramBotExecuto
                 return null;
             }
 
-            // 2️⃣ Проверка, что есть сообщение
+            // 2️⃣ Проверка наличия сообщения
             if (!update.hasMessage()) {
                 log.warn("Получен update без сообщения: {}", update);
                 return null;
@@ -50,7 +54,7 @@ public class BookingBot extends TelegramWebhookBot implements TelegramBotExecuto
             Long chatId = update.getMessage().getChatId();
             Object input;
 
-            // 3️⃣ Определяем тип входа
+            // 3️⃣ Обработка контакта или текста
             if (update.getMessage().hasContact()) {
                 log.info("Получен контакт. chatId = {}, phone = {}",
                         chatId, update.getMessage().getContact().getPhoneNumber());
@@ -59,9 +63,20 @@ public class BookingBot extends TelegramWebhookBot implements TelegramBotExecuto
                 String text = update.getMessage().getText().trim();
                 input = text;
 
-                // Специальная обработка /start
+                // 3.1️⃣ Специальная обработка /start для всех пользователей
                 if ("/start".equals(text)) {
                     stateService.setStep(chatId, BookingStep.VISIT_TYPE);
+                    return SendMessage.builder()
+                            .chatId(chatId.toString())
+                            .text("🎯 Добро пожаловать! Выберите тип посещения")
+                            .replyMarkup(keyboardFactory.getKeyboardForStep(BookingStep.VISIT_TYPE))
+                            .build();
+                }
+
+                // 3.2️⃣ Админ-команды проверяем только для админов
+                if (text.startsWith("/") && botConfigService.isAdmin(chatId)) {
+                    log.info("Обработка админ-команды от {}: {}", chatId, text);
+                    return adminCommandHandler.handle(chatId, text);
                 }
             } else {
                 return SendMessage.builder()
@@ -135,7 +150,8 @@ public class BookingBot extends TelegramWebhookBot implements TelegramBotExecuto
         super.execute(message);
     }
 
-    @Override    public void execute(EditMessageText message) throws TelegramApiException {
+    @Override
+    public void execute(EditMessageText message) throws TelegramApiException {
         super.execute(message);
     }
 }

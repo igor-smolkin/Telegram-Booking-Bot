@@ -29,21 +29,32 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Spring boot
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'me.paulschwarz:spring-dotenv:3.0.0'
 
     // Telegram bot API
-    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation "org.telegram:telegrambots:6.9.7.1"
 
     // Google APIs
-    implementation("com.google.apis:google-api-services-sheets:v4-rev614-1.18.0-rc")
-    implementation("com.google.apis:google-api-services-calendar:v3-rev411-1.25.0")
+    implementation "com.google.apis:google-api-services-sheets:v4-rev614-1.18.0-rc"
+    implementation "com.google.apis:google-api-services-calendar:v3-rev411-1.25.0"
     implementation "com.google.auth:google-auth-library-oauth2-http:1.24.0"
-    implementation("com.google.oauth-client:google-oauth-client-jetty:1.39.0")
+    implementation "com.google.oauth-client:google-oauth-client-jetty:1.39.0"
+
+    // PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// ==================== BOOTJAR CONFIG ====================
+bootJar {
+    archiveFileName.set('booking-bot.jar')
+    mainClass.set('com.ataraxii.TestSpringBotApplication')
 }
