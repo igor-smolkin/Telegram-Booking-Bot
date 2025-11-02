@@ -15,7 +15,7 @@ public class AdminCommandHandler {
     private final BotConfigService configService;
 
     public BotApiMethod<?> handle(Long chatId, String text) {
-        // Проверка на права администратора
+
         if (!configService.isAdmin(chatId)) {
             return SendMessage.builder()
                     .chatId(chatId)
@@ -78,6 +78,46 @@ public class AdminCommandHandler {
                     return SendMessage.builder()
                             .chatId(chatId)
                             .text("✅ Изменён CalendarId: " + newId)
+                            .build();
+                }
+
+                // 🔹 Новые информационные команды
+                case "/admins" -> {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text("👑 Текущие админы: " + configService.get().getAdminIds())
+                            .build();
+                }
+
+                case "/calendarid" -> {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text("📅 Текущий Calendar ID: " + configService.getCalendarId())
+                            .build();
+                }
+
+                case "/spreadsheetid" -> {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text("📄 Текущий Spreadsheet ID: " + configService.getSpreadsheetId())
+                            .build();
+                }
+
+                case "/help" -> {
+                    return SendMessage.builder()
+                            .chatId(chatId)
+                            .text("""
+                                                                    Доступные команды:
+                                    /addadmin <id> - Добавить нового админа
+                                    /removeadmin <id> - Удалить админа
+                                    /setadmingroupid <id> - Установить чат для админов
+                                    /setspreadsheetid <id> - Установить Spreadsheet ID
+                                    /setcalendarid <id> - Установить Calendar ID
+                                    /admins - Показать список админов
+                                    /spreadsheetid - Показать текущий Spreadsheet ID
+                                    /calendarid - Показать текущий Calendar ID
+                                    /help - Показать это сообщение
+                                    """)
                             .build();
                 }
 

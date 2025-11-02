@@ -48,6 +48,10 @@ public class BotConfigService {
     // Админские методы
     // --------------------------
     public synchronized void addAdminId(Long adminId) {
+        if (adminId == null) {
+            log.warn("Попытка добавить null в список админов — действие проигнорировано");
+            return;
+        }
         Set<String> admins = getAdminSet();
         if (admins.add(adminId.toString())) {
             update(s -> s.setAdminIds(String.join(",", admins)));
@@ -58,6 +62,10 @@ public class BotConfigService {
     }
 
     public synchronized void removeAdminId(Long adminId) {
+        if (adminId == null) {
+            log.warn("Попытка удалить null из списка админов — действие проигнорировано");
+            return;
+        }
         Set<String> admins = getAdminSet();
         if (admins.remove(adminId.toString())) {
             update(s -> s.setAdminIds(String.join(",", admins)));
@@ -84,16 +92,24 @@ public class BotConfigService {
         return get().getGoogleSpreadsheetId();
     }
 
-    public synchronized void setSpreadsheetId(String newId) {
-        update(s -> s.setGoogleSpreadsheetId(newId));
-        log.info("Google Spreadsheet ID обновлён: {}", newId);
-    }
-
     public synchronized String getCalendarId() {
         return get().getGoogleCalendarId();
     }
 
+    public synchronized void setSpreadsheetId(String newId) {
+        if (newId == null || newId.isBlank()) {
+            log.warn("Попытка установить null или пустой Spreadsheet ID — действие проигнорировано");
+            return;
+        }
+        update(s -> s.setGoogleSpreadsheetId(newId));
+        log.info("Google Spreadsheet ID обновлён: {}", newId);
+    }
+
     public synchronized void setCalendarId(String newId) {
+        if (newId == null || newId.isBlank()) {
+            log.warn("Попытка установить null или пустой Calendar ID — действие проигнорировано");
+            return;
+        }
         update(s -> s.setGoogleCalendarId(newId));
         log.info("Google Calendar ID обновлён: {}", newId);
     }
